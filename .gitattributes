@@ -1,0 +1,1 @@
+data/elmo/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5 filter=lfs diff=lfs merge=lfs -text
