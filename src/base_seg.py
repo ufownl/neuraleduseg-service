@@ -7,7 +7,6 @@ import time
 import logging
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib as tc
 
 
 class BaseSegModel(object):

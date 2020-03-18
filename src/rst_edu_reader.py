@@ -3,7 +3,6 @@
 # author: Yizhong
 # created_at: 03/05/2018 2:56 PM
 import json
-import random
 import numpy as np
 
 

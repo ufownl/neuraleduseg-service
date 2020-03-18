@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 # author: Yizhong
 # created_at: 03/05/2018 2:56 PM
-import os
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import logging
-import random
 import numpy as np
+import os
+import random
 import tensorflow as tf
-from config import parse_args
-from api import prepare, train, evaluate, segment
+from .config import parse_args
+from .api import prepare, train, evaluate, segment
 
 
 if __name__ == '__main__':
@@ -17,7 +16,9 @@ if __name__ == '__main__':
 
     logger = logging.getLogger("SegEDU")
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        ' %(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
     if args.log_path:
         file_handler = logging.FileHandler(args.log_path)
         file_handler.setLevel(logging.INFO)
