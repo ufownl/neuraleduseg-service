@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+# -*- coding: utf-8; -*-
+
+"""Perform discourse segmentation of input data.
+
+"""
+
+##################################################################
+# Imports
+from argparse import ArgumentParser, Namespace
+from neuralseg import AttnSegModel
+from neuralseg.config import MODEL_DIR, VOCAB_PATH
+from typing import Dict, List, Tuple
+import json
+import pickle
+
+
+##################################################################
+# Constants
+snt_id_t = Tuple[int, int]
+
+
+##################################################################
+# Methods
+def load_vocab(fname):
+    with open(fname, 'rb') as fin:
+        word_vocab = pickle.load(fin)
+    return word_vocab
+
+
+def sentences2batch(segmenter: AttnSegModel,
+                    sentences: List[List[str]],
+                    pad_token_id: int):
+    lengths = [len(s) for s in sentences]
+    max_len = max(lengths)
+    batch = {
+        "raw_data": [],
+        "word_ids": [],
+        "length": lengths,
+        "seg_labels": [[0] * max_len for _ in sentences]
+    }
+    for s, length in zip(sentences, lengths):
+        batch["raw_data"].append({"words": s})
+        word_ids = segmenter.word_vocab.convert_to_ids(s) \
+            + [pad_token_id] * (max_len - length)
+        batch["word_ids"].append(word_ids)
+    return batch
+
+
+def add_segments(docs: list, sentences: List[List[str]],
+                 segments: List[List[int]], snt_ids: List[snt_id_t],
+                 snt_id2offset: Dict[snt_id_t, int]):
+    def add_edu(edus, start, end):
+        if end - start > 0:
+            toks = list(range(start, end))
+            edus.append(
+                {
+                    "polarity_scores": [],
+                    "toks": toks
+                }
+            )
+            return len(toks)
+        return 0
+
+    n_doc_toks = sum(len(doc_i["toks"]) for doc_i in docs)
+    m_edu_toks = 0
+    for snt_id, sentence, seg_idcs in zip(snt_ids, sentences, segments):
+        doc_id, _ = snt_id
+        doc = docs[doc_id]
+        edus = doc["edus"]
+        offset = snt_id2offset[snt_id]
+        start_id = offset
+        snt_end = len(sentence) + offset
+        for end_id in seg_idcs:
+            end_id += offset
+            m_edu_toks += add_edu(edus, start_id, end_id)
+            start_id = end_id
+        m_edu_toks += add_edu(edus, start_id, snt_end)
+    assert n_doc_toks == m_edu_toks, \
+        "Unequal number of tokens in document and EDUs:" \
+        " {} vs. {}.".format(n_doc_toks, m_edu_toks)
+
+
+def segment(segmenter: AttnSegModel, sentences: List[List[str]],
+            docs: list, snt_ids: List[snt_id_t],
+            snt_id2offset: Dict[snt_id_t, int]):
+
+    # pad sentences
+    pad_token_id = segmenter.word_vocab.get_id(segmenter.word_vocab.pad_token)
+    batch = sentences2batch(segmenter, sentences, pad_token_id)
+    # segment data
+    segments = segmenter.segment(batch)
+    add_segments(docs, sentences, segments, snt_ids, snt_id2offset)
+
+
+def dsegment(segmenter: object, pad_id: int, data: dict) -> None:
+    """Perform discourse segmentation of the input data.
+
+    """
+    snt_indices = []
+    snt_idx2offset = {}
+    sentences = []
+
+    def add_sentence(doc_id, snt_id, offset, toks):
+        snt_idx = (doc_id, snt_id)
+        snt_indices.append(snt_idx)
+        snt_idx2offset[snt_idx] = offset
+        sentences.append(toks)
+
+    docs = data["docs"]
+    for i, doc_i in enumerate(docs):
+        offset = 0
+        snt_toks = []
+        prev_snt_id = None
+        doc_i["edus"] = []
+        for t in doc_i["toks"]:
+            snt_id = t["snt_id"]
+            if snt_id != prev_snt_id:
+                if snt_toks:
+                    add_sentence(i, prev_snt_id, offset, snt_toks)
+                    offset += len(snt_toks)
+                    snt_toks = []
+                prev_snt_id = snt_id
+            snt_toks.append(t["form"])
+        if snt_toks:
+            add_sentence(i, prev_snt_id, offset, snt_toks)
+        segment(segmenter, sentences, docs, snt_indices, snt_idx2offset)
+
+
+def main():
+    argparser = ArgumentParser(
+        description="Script for discourse sementation of JSON files"
+    )
+    argparser.add_argument("json_files",
+                           help="JSON files to be enriched",
+                           nargs='+')
+    args: Namespace = argparser.parse_args()
+
+    # initialize discourse segmenter
+    model_args = Namespace(
+        gpu=None,
+        hidden_size=200,
+        window_size=5,
+        optim="adam",
+        learning_rate=0.001,
+        weight_decay=1e-4,
+        max_grad_norm=5.0,
+        dropout_keep_prob=0.9,
+        ema_decay=0.9999,
+        model_dir=MODEL_DIR,
+        result_dir="/tmp"
+    )
+    word_vocab = load_vocab(VOCAB_PATH)
+
+    dsegmenter = AttnSegModel(model_args, word_vocab)
+    dsegmenter.restore("best")
+    if dsegmenter.use_ema:
+        dsegmenter.sess.run(dsegmenter.ema_backup_op)
+        dsegmenter.sess.run(dsegmenter.ema_assign_op)
+
+    # process files
+    for fname in args.json_files:
+        with open(fname) as ifile:
+            data = json.load(ifile)
+        dsegment(dsegmenter, word_vocab.pad_token, data)
+        with open(fname, 'w') as ofile:
+            json.dump(data, ofile)
+
+
+##################################################################
+# Main
+if __name__ == "__main__":
+    main()
