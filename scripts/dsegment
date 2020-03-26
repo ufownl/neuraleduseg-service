@@ -11,8 +11,10 @@ from argparse import ArgumentParser, Namespace
 from neuralseg import AttnSegModel
 from neuralseg.config import MODEL_DIR, VOCAB_PATH
 from typing import Dict, List, Tuple
+import gc
 import json
 import pickle
+import torch
 
 
 ##################################################################
@@ -62,10 +64,11 @@ def add_segments(docs: list, sentences: List[List[str]],
             return len(toks)
         return 0
 
-    n_doc_toks = sum(len(doc_i["toks"]) for doc_i in docs)
+    doc_ids = set()
     m_edu_toks = 0
     for snt_id, sentence, seg_idcs in zip(snt_ids, sentences, segments):
         doc_id, _ = snt_id
+        doc_ids.add(doc_id)
         doc = docs[doc_id]
         edus = doc["edus"]
         offset = snt_id2offset[snt_id]
@@ -76,6 +79,7 @@ def add_segments(docs: list, sentences: List[List[str]],
             m_edu_toks += add_edu(edus, start_id, end_id)
             start_id = end_id
         m_edu_toks += add_edu(edus, start_id, snt_end)
+    n_doc_toks = sum(len(docs[doc_id]["toks"]) for doc_id in doc_ids)
     assert n_doc_toks == m_edu_toks, \
         "Unequal number of tokens in document and EDUs:" \
         " {} vs. {}.".format(n_doc_toks, m_edu_toks)
@@ -101,6 +105,11 @@ def dsegment(segmenter: object, pad_id: int, data: dict) -> None:
     snt_idx2offset = {}
     sentences = []
 
+    def reset():
+        del snt_indices[:]
+        del sentences[:]
+        snt_idx2offset.clear()
+
     def add_sentence(doc_id, snt_id, offset, toks):
         snt_idx = (doc_id, snt_id)
         snt_indices.append(snt_idx)
@@ -124,7 +133,10 @@ def dsegment(segmenter: object, pad_id: int, data: dict) -> None:
             snt_toks.append(t["form"])
         if snt_toks:
             add_sentence(i, prev_snt_id, offset, snt_toks)
-        segment(segmenter, sentences, docs, snt_indices, snt_idx2offset)
+        if i % 50 == 0:
+            segment(segmenter, sentences, docs, snt_indices, snt_idx2offset)
+            reset()
+    segment(segmenter, sentences, docs, snt_indices, snt_idx2offset)
 
 
 def main():
@@ -162,9 +174,11 @@ def main():
     for fname in args.json_files:
         with open(fname) as ifile:
             data = json.load(ifile)
-        dsegment(dsegmenter, word_vocab.pad_token, data)
+        with torch.no_grad():
+            dsegment(dsegmenter, word_vocab.pad_token, data)
         with open(fname, 'w') as ofile:
             json.dump(data, ofile)
+        gc.collect()
 
 
 ##################################################################
