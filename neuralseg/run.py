@@ -7,8 +7,8 @@ import numpy as np
 import os
 import random
 import tensorflow as tf
-from .config import parse_args
-from .api import prepare, train, evaluate, segment
+from neuralseg.config import parse_args
+from neuralseg.api import prepare, train, evaluate, segment
 
 
 if __name__ == '__main__':

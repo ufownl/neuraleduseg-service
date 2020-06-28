@@ -5,7 +5,7 @@
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib as tc
-from .lstm_crf_seg import LSTMCRFSegModel
+from neuralseg.lstm_crf_seg import LSTMCRFSegModel
 
 
 class ELMOCRFSegModel(LSTMCRFSegModel):

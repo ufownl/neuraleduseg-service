@@ -4,7 +4,7 @@
 # created_at: 04/09/2018 10:23 PM
 import tensorflow as tf
 import tensorflow.contrib as tc
-from .lstm_seg import LSTMSegModel
+from neuralseg.lstm_seg import LSTMSegModel
 
 
 class LSTMCRFSegModel(LSTMSegModel):

@@ -4,8 +4,8 @@
 # created_at: 04/08/2018 10:24 PM
 import tensorflow as tf
 import tensorflow.contrib as tc
-from .base_seg import BaseSegModel
-from .layers import rnn
+from neuralseg.base_seg import BaseSegModel
+from neuralseg.layers import rnn
 
 
 class LSTMSegModel(BaseSegModel):

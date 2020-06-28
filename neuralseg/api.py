@@ -8,9 +8,9 @@ import random
 import pickle
 import logging
 import spacy
-from .preprocess import preprocess_rst_data
-from .rst_edu_reader import RSTData
-from .atten_seg import AttnSegModel
+from neuralseg.preprocess import preprocess_rst_data
+from neuralseg.rst_edu_reader import RSTData
+from neuralseg.atten_seg import AttnSegModel
 
 
 def prepare(args):

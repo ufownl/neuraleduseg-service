@@ -3,9 +3,9 @@
 # author: Yizhong
 # created_at: 04/09/2018 10:23 PM
 import tensorflow as tf
-from .rnn import rnn
-from .elmo_crf_seg import ELMOCRFSegModel
-from .layers import self_attention
+from neuralseg.rnn import rnn
+from neuralseg.elmo_crf_seg import ELMOCRFSegModel
+from neuralseg.layers import self_attention
 
 
 class AttnSegModel(ELMOCRFSegModel):
