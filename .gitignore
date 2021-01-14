@@ -1,3 +1,6 @@
+# to big for the repo
+data/elmo/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -2,6 +2,8 @@ FROM python:3.6
 
 RUN apt update && apt install -y python-pip
 
+WORKDIR /opt/neural-edu-seg/data/elmo
+RUN curl -O https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5
 
 WORKDIR /opt/neural-edu-seg
 ADD requirements.txt /opt/neural-edu-seg
