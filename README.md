@@ -2,6 +2,24 @@
 A toolkit for segmenting Elementary Discourse Units (clauses).
 We implement it as is described in our EMNLP paper: [Toward Fast and Accurate Neural Discourse Segmentation](http://www.aclweb.org/anthology/D18-1116)
 
+# Docker-based installation and usage
+
+```
+docker build -f Dockerfile -t neural-edu-seg .
+
+cat /tmp/neuralseg/input/input_short.txt 
+Although they didn't like it, they accepted the offer.
+
+docker run -v /tmp:/tmp -it neural-edu-seg /tmp/neuralseg/input/input_short.txt
+2020-12-12 20:57:03.762424: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+/usr/local/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py:97: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+/usr/local/lib/python3.6/site-packages/sklearn/utils/linear_assignment_.py:22: FutureWarning: The linear_assignment_ module is deprecated in 0.21 and will be removed from 0.23. Use scipy.optimize.linear_sum_assignment instead.
+  FutureWarning)
+Although they did n't like it ,
+they accepted the offer .
+```
+
 
 ### Requirements
 - Python 3.5

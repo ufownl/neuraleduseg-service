@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 # author: Yizhong
 # created_at: 04/09/2018 10:23 PM
+import os
+
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib as tc
+
 from neuralseg.lstm_crf_seg import LSTMCRFSegModel
 
 
@@ -15,7 +18,14 @@ class ELMOCRFSegModel(LSTMCRFSegModel):
 
         # import ElmoEmbedder here so that the cuda_visible_divices can work
         from allennlp.commands.elmo import ElmoEmbedder
-        self.elmo = ElmoEmbedder(cuda_device=0 if args.gpu is not None else -1)
+
+        cuda_device=0 if args.gpu is not None else -1
+        data_path = os.path.abspath(os.path.join(__file__, '../../data'))
+        self.elmo = ElmoEmbedder(
+            options_file=os.path.join(data_path, 'elmo/elmo_2x4096_512_2048cnn_2xhighway_options.json'),
+            weight_file=os.path.join(data_path, 'elmo/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'),
+            cuda_device=cuda_device
+        )
 
     def _setup_placeholders(self):
         self.placeholders = {'input_words': tf.placeholder(tf.int32,

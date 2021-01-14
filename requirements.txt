@@ -1,4 +1,13 @@
-tensorflow_gpu~=1.5
-spacy~=2.0,<2.2
-allennlp~=0.4
-numpy~=1.14
+spacy==2.0.11
+scikit-learn==0.22.2
+allennlp==0.5.0
+numpydoc==1.1.0 # allennlp==0.5.0 requires numpydoc
+numpy==1.14.5
+tensorflow==1.5.1
+torch==0.4.0
+docutils==0.15
+intervaltree==3.1.0
+
+hug==2.6.1 # for the REST API
+pexpect==4.8.0 # for testing the REST API
+sh==1.14.1 # for testing the REST API
