@@ -32,7 +32,6 @@ setup(
     packages=["neuralseg"],
     install_requires=INSTALL_REQUIRES,
     provides=["neuralseg (0.1.0a0)"],
-    scripts=[path.join("scripts", "dsegment")],
     author="Yizhong Wang",
     author_email="yishong@pku.edu.cn",
     classifiers=["Development Status :: 3 - Alpha",
