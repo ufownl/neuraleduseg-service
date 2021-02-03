@@ -65,6 +65,7 @@ def parse_args(namespace=DEFAULT_ARGS):
 
 def load_models(args):
     """Load models needed for EDU segmentation."""
+    print("Loading NeuralEDUSeg models...")
     rst_data = RSTData()
     with open(args.word_vocab_path, 'rb') as fin:
         word_vocab = pickle.load(fin)
@@ -78,6 +79,7 @@ def load_models(args):
 
     spacy_nlp = spacy.blank("en")
     spacy_nlp.add_pipe(spacy_nlp.create_pipe("sentencizer"))
+    print("Finished loading NeuralEDUSeg models.")
     return rst_data, model, spacy_nlp
 
 
@@ -326,8 +328,6 @@ def main():
     else:  # write to STDOUT
         args.output_file.write(result)
     
-
-
 
 if __name__ == "__main__":
     logging.getLogger("tensorflow").setLevel(logging.ERROR)
