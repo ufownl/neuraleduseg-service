@@ -13,10 +13,9 @@ from test_cli import FIXTURES_PATH, REPO_PACKAGE_PATH
 @pytest.fixture(scope="session", autouse=True)
 def start_api():
     print("starting API...")
-    # ~ import pudb; pudb.set_trace()
-
     api_path = REPO_PACKAGE_PATH.joinpath('splitter_api.py')                                                                                                                                                                                             
     child = pexpect.spawn(f'hug -f {api_path}')
+
     # provide the fixture value (we don't need it, but it marks the
     # point when the 'setup' part of this fixture ends).
     yield child.expect('(?i)Serving on :8000')
@@ -24,11 +23,14 @@ def start_api():
     child.close()
 
 
+def test_api_status_page():
+    """Status page is reachable when REST API is running."""
+    res = requests.get('http://localhost:8000/status')
+    assert res.ok == True
+
 def test_api_short_json():
     input_text = FIXTURES_PATH.joinpath('input_short.txt').read_text()
     expected_output = FIXTURES_PATH.joinpath('output_short.json').read_text()
-
-    # ~ import pudb; pudb.set_trace()
 
     res = requests.post(
         f'http://localhost:8000/parse?format=json',
@@ -111,4 +113,3 @@ def test_api_long_inline():
         f'http://localhost:8000/parse',
         files={'input': input_text})
     assert expected_output == res.content.decode('utf-8')
-

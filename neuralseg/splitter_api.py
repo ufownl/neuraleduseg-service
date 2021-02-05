@@ -2,6 +2,7 @@ import os
 import logging
 import sys
 
+from falcon import HTTP_200
 import hug
 
 from neuralseg.splitter import DEFAULT_ARGS, load_models, parse_args, segment_text
@@ -56,3 +57,7 @@ def call_parser(body, format: hug.types.text = 'inline', debug: hug.types.boolea
 
     else:
         return {'body': body}
+
+@hug.get('/status')
+def get_status():
+    return HTTP_200
