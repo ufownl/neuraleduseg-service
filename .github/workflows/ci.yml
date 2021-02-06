@@ -3,18 +3,31 @@ name: Docker Image CI
 on:
   push:
     branches: [ master ]
+    tags:
+      - '*'
   pull_request:
     branches: [ master ]
+
+env:
+  # TODO: Change variable to your image's name.
+  IMAGE_NAME: neuraleduseg-service
 
 jobs:
 
   build:
-
+    name: Build, test and publish to Docker Hub
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build -t neuralseg .
-    - name: run pytest in Docker
-      run: docker run --entrypoint=pytest neuralseg
+      run: docker build -t $IMAGE_NAME .
+    - name: Run pytest in Docker
+      run: docker run --entrypoint=pytest $IMAGE_NAME
+    - name: Publish to Docker Hub
+      uses: docker/build-push-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD}}
+        repository: nlpbox/$IMAGE_NAME
+        tags: latest, ${{ github.run_number }}
