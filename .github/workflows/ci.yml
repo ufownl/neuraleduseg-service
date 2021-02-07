@@ -9,25 +9,27 @@ on:
     branches: [ master ]
 
 env:
-  # TODO: Change variable to your image's name.
   IMAGE_NAME: neuraleduseg-service
 
 jobs:
 
   build:
-    name: Build, test and publish to Docker Hub
+    name: Build, test and publish Docker image to Docker Hub
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build -t $IMAGE_NAME .
+
+    - name: Get the git tag name
+      id: get_git_tag
+      run: echo ::set-output name=GIT_TAG::${GITHUB_REF#refs/tags/}
+
+    - name: Build Docker image
+      run:docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${{ github.run_number }} -t $IMAGE_NAME:${{ steps.get_git_tag.outputs.GIT_TAG }} .
     - name: Run pytest in Docker
       run: docker run --entrypoint=pytest $IMAGE_NAME
-    - name: Publish to Docker Hub
-      uses: docker/build-push-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD}}
-        repository: nlpbox/$IMAGE_NAME
-        tags: latest, ${{ github.run_number }}
+
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKERHUB_USER }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+    - name: Publish Docker image
+      run: docker push $IMAGE_NAME
