@@ -25,7 +25,7 @@ jobs:
       run: echo ::set-output name=GIT_TAG::${GITHUB_REF#refs/tags/}
 
     - name: Build Docker image
-      run:docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${{ github.run_number }} -t $IMAGE_NAME:${{ steps.get_git_tag.outputs.GIT_TAG }} .
+      run: docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${{ github.run_number }} -t $IMAGE_NAME:${{ steps.get_git_tag.outputs.GIT_TAG }} .
     - name: Run pytest in Docker
       run: docker run --entrypoint=pytest $IMAGE_NAME
 
