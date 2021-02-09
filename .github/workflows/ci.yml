@@ -28,4 +28,6 @@ jobs:
     - name: Login to Docker Hub
       run: echo '''${{secrets.DOCKERHUB_PASSWORD}}''' | docker login -u ${{secrets.DOCKERHUB_USER}} --password-stdin
     - name: Publish Docker image
-      run: docker push --all-tags ${{secrets.DOCKERHUB_USER}}/$IMAGE_NAME
+      # The version of docker used in Github Actions does not understand 'docker push --all-tags'
+      # cf. https://github.com/NLPbox/neuraleduseg-service/runs/1869547000?check_suite_focus=true
+      run: docker push ${{secrets.DOCKERHUB_USER}}/$IMAGE_NAME:latest && docker push ${{secrets.DOCKERHUB_USER}}/$IMAGE_NAME:${{github.run_number}}
