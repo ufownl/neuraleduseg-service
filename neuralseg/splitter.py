@@ -24,6 +24,7 @@ import neuralseg
 from neuralseg.rst_edu_reader import RSTData
 from neuralseg.atten_seg import AttnSegModel
 
+import pretty_errors
 
 # This matches two or more empty lines.
 # We enclose the regex in () "capturing brackets", so that re.split

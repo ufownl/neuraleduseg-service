@@ -2,7 +2,9 @@ import os
 import logging
 import sys
 
-from falcon import HTTP_200
+from tensorflow.python.framework.errors_impl import InvalidArgumentError
+
+from falcon import HTTP_200, HTTP_422
 import hug
 
 from neuralseg.splitter import DEFAULT_ARGS, load_models, parse_args, segment_text
@@ -44,12 +46,18 @@ def process_data(request, response, resource):
 @hug.post(
     '/parse', output=hug.output_format.file,
     examples=['format=inline', 'format=json', 'format=tokenized'])
-def call_parser(body, format: hug.types.text = 'inline', debug: hug.types.boolean = False):
+def call_parser(body, format: hug.types.text = 'inline', debug: hug.types.boolean = False, response: hug.response.Response = response):
     if 'input' in body:
         input_file_content = body['input']
         input_text = input_file_content.decode('utf-8')
 
-        output_text = segment_text(input_text, RST_DATA, MODEL, SPACY_NLP, output_format=format, debug=debug)
+        # ~ from pudb.remote import set_trace; set_trace(term_size=(160, 40), host='0.0.0.0', port=6900)
+        try:
+            output_text = segment_text(input_text, RST_DATA, MODEL, SPACY_NLP, output_format=format, debug=debug)
+        except InvalidArgumentError as err:
+            response.status = HTTP_422  # Unprocessable Entity
+            output_text = f"Input text too short for trained NeuralEDUSeg model. Error: {err}"
+
         with open(OUTPUT_FILEPATH, 'w') as output_file:
             output_file.write(output_text)
 

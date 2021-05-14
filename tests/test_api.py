@@ -70,6 +70,18 @@ def test_api_short_inline():
         files={'input': input_text})
     assert expected_output == res.content.decode('utf-8')
 
+def test_api_too_short_inline():
+    input_text = FIXTURES_PATH.joinpath('input_too_short.txt').read_text()
+    expected_output = FIXTURES_PATH.joinpath('output_too_short.inline').read_text()
+
+    from pudb.remote import set_trace; set_trace(term_size=(160, 40), host='0.0.0.0', port=6900)
+
+    res = requests.post(
+        f'http://localhost:8000/parse?format=inline',
+        files={'input': input_text})
+    assert expected_output == res.content.decode('utf-8')
+
+
 
 
 def test_api_long_json():

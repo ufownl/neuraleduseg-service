@@ -14,11 +14,20 @@ COPY neuralseg /opt/neural-edu-seg/neuralseg
 COPY setup.py /opt/neural-edu-seg
 RUN python setup.py install
 
+
+# TODO: remove
+RUN pip install pudb ipython
+RUN pip install pretty_errors
+RUN apt install nano
+
+
+
 COPY data /opt/neural-edu-seg/data
 COPY tests /opt/neural-edu-seg/tests
 
 COPY data /usr/local/lib/python3.6/site-packages/neuralseg-0.1.0a0-py3.6.egg/data
 RUN cp /opt/elmo/weights.hdf5 /usr/local/lib/python3.6/site-packages/neuralseg-0.1.0a0-py3.6.egg/data/elmo/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5
+
 
 ENTRYPOINT ["neuralseg/splitter.py"]
 

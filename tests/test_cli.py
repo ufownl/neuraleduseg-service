@@ -11,6 +11,8 @@ import sys
 import pytest
 import requests
 
+from tensorflow.python.framework.errors_impl import InvalidArgumentError
+
 from neuralseg.splitter import DEFAULT_ARGS, load_models, segment_text
 
 
@@ -33,6 +35,24 @@ def parser_models():
     # provide the fixture values
     rst_data, model, spacy_nlp = load_models(DEFAULT_ARGS)
     return rst_data, model, spacy_nlp
+
+
+def test_segmentation_too_short(parser_models):
+    """NeuralEDUSeg crashes if the input is too short (less than five tokens)
+    
+    cf. https://github.com/PKU-TANGENT/NeuralEDUSeg/issues/1
+    and https://github.com/NLPbox/neuraleduseg-service/issues/2
+    """
+    rst_data, model, spacy_nlp = parser_models
+    
+    # ~ import pudb; pudb.set_trace()
+    
+    input_text = FIXTURES_PATH.joinpath('input_too_short.txt').read_text()
+    
+    with pytest.raises(InvalidArgumentError) as excinfo:
+        json_result = segment_text(input_text, rst_data, model, spacy_nlp, output_format='inline')
+
+    
 
 
 def test_segmentation_short(parser_models):
